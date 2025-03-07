@@ -1,0 +1,50 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    freetds-dev \
+    freetds-bin \
+    unixodbc \
+    unixodbc-dev \
+    tdsodbc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure ODBC for Sybase
+RUN echo "[FreeTDS]\n\
+Description = FreeTDS Driver\n\
+Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so\n\
+Setup = /usr/lib/x86_64-linux-gnu/odbc/libtdsS.so\n\
+UsageCount = 1" > /etc/odbcinst.ini
+
+RUN echo "[SYBASE]\n\
+Driver = FreeTDS\n\
+Description = Sybase ASE\n\
+Trace = No\n\
+Server = sybase\n\
+Port = 5000\n\
+Database = SampleDB\n\
+TDS_Version = 5.0" > /etc/odbc.ini
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ /app/src/
+
+# Create output directory
+RUN mkdir -p /app/output
+
+# Set environment variables
+ENV PYTHONPATH=/app
+
+# Expose port for FastAPI
+EXPOSE 8000
+
+# Command to run the application
+CMD ["uvicorn", "src.api.api:app", "--host", "0.0.0.0", "--port", "8000"]
