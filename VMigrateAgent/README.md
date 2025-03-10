@@ -116,6 +116,133 @@ VMigrateAgent follows a microservices-based architecture with the following key 
    - Frontend displays the schema and dependencies in an interactive visualization
    - User can export the schema to various formats (JSON, HTML)
 
+### Agent Orchestration Flow
+
+The multi-agent system follows a carefully orchestrated workflow managed by the Orchestrator Agent. Here's a detailed flow diagram of how the agents interact:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                     FastAPI REST API                                             │
+└───────────────────────────────────────────┬─────────────────────────────────────────────────────┘
+                                            │
+                                            │ extract-schema request
+                                            ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                    Orchestrator Agent                                           │
+│                                                                                                 │
+│  ┌─────────────────────────────────┐      ┌──────────────────────────────┐                      │
+│  │ 1. Receive extraction request   │─────▶│ 2. Initialize extraction     │                      │
+│  └─────────────────────────────────┘      └──────────────┬───────────────┘                      │
+│                                                          │                                      │
+│                                                          ▼                                      │
+│  ┌─────────────────────────────────┐      ┌──────────────────────────────┐                      │
+│  │ 5. Aggregate results            │◀─────│ 3. Coordinate agent tasks    │                      │
+│  └─────────────┬───────────────────┘      └──────────────┬───────────────┘                      │
+│                │                                         │                                      │
+│                ▼                                         │                                      │
+│  ┌─────────────────────────────────┐                     │                                      │
+│  │ 6. Return complete schema       │                     │                                      │
+│  └─────────────────────────────────┘                     │                                      │
+└─────────────────────────────────────────────────────────┬─────────────────────────────────────┘
+                                                          │
+                                                          │ Parallel execution
+                                                          ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ Connection Agent│ │   Table Agent   │ │ Procedure Agent │ │Relationship Agent│ │ Dependency Agent│
+│                 │ │                 │ │                 │ │                 │ │                 │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │1. Connect to│ │ │ │1. Extract   │ │ │ │1. Extract   │ │ │ │1. Map foreign│ │ │ │1. Analyze   │ │
+│ │   database  │ │ │ │   tables    │ │ │ │  procedures │ │ │ │   keys      │ │ │ │dependencies │ │
+│ └──────┬──────┘ │ │ └──────┬──────┘ │ │ └──────┬──────┘ │ │ └──────┬──────┘ │ │ └──────┬──────┘ │
+│        │        │ │        │        │ │        │        │ │        │        │ │        │        │
+│        ▼        │ │        ▼        │ │        ▼        │ │        ▼        │ │        ▼        │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │2. Detect DB │ │ │ │2. Extract   │ │ │ │2. Parse     │ │ │ │2. Identify  │ │ │ │2. Build     │ │
+│ │   type      │ │ │ │   columns   │ │ │ │   code      │ │ │ │relationships│ │ │ │   graph     │ │
+│ └──────┬──────┘ │ │ └──────┬──────┘ │ │ └──────┬──────┘ │ │ └──────┬──────┘ │ │ └──────┬──────┘ │
+│        │        │ │        │        │ │        │        │ │        │        │ │        │        │
+│        ▼        │ │        ▼        │ │        ▼        │ │        ▼        │ │        ▼        │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │3. Return    │ │ │ │3. Return    │ │ │ │3. Return    │ │ │ │3. Return    │ │ │ │3. Return    │ │
+│ │   metadata  │ │ │ │   tables    │ │ │ │  procedures │ │ │ │relationships│ │ │ │dependencies │ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
+                                                          │
+                                                          │ Results
+                                                          ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                      Graph Agent                                                │
+│                                                                                                 │
+│  ┌─────────────────────────────────┐      ┌──────────────────────────────┐                      │
+│  │ 1. Receive schema data          │─────▶│ 2. Convert to graph model    │                      │
+│  └─────────────────────────────────┘      └──────────────┬───────────────┘                      │
+│                                                          │                                      │
+│                                                          ▼                                      │
+│  ┌─────────────────────────────────┐      ┌──────────────────────────────┐                      │
+│  │ 4. Return graph representation  │◀─────│ 3. Store in Neo4j            │                      │
+│  └─────────────────────────────────┘      └──────────────────────────────┘                      │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                                          │
+                                                          │ Analysis request
+                                                          ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       LLM Agent                                                 │
+│                                                                                                 │
+│  ┌─────────────────────────────────┐      ┌──────────────────────────────┐                      │
+│  │ 1. Receive analysis request     │─────▶│ 2. Formulate LLM prompt      │                      │
+│  └─────────────────────────────────┘      └──────────────┬───────────────┘                      │
+│                                                          │                                      │
+│                                                          ▼                                      │
+│  ┌─────────────────────────────────┐      ┌──────────────────────────────┐                      │
+│  │ 4. Process and format results   │◀─────│ 3. Send to OpenAI API        │                      │
+│  └─────────────┬───────────────────┘      └──────────────────────────────┘                      │
+│                │                                                                                │
+│                ▼                                                                                │
+│  ┌─────────────────────────────────┐                                                            │
+│  │ 5. Return analysis results      │                                                            │
+│  └─────────────────────────────────┘                                                            │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Orchestration Process Details
+
+1. **Initialization Phase**:
+   - The Orchestrator Agent receives an extraction request from the API
+   - It initializes the extraction process and prepares to coordinate the specialized agents
+
+2. **Connection Phase**:
+   - The Connection Agent is invoked first to establish a database connection
+   - It detects the database type (PostgreSQL, MySQL, SQL Server, Sybase)
+   - Connection metadata is returned to the Orchestrator Agent
+
+3. **Parallel Extraction Phase**:
+   - The Orchestrator Agent creates asynchronous tasks for Table Agent and Procedure Agent
+   - These agents work in parallel to extract their respective database objects
+   - The Table Agent extracts tables, columns, primary keys, and indexes
+   - The Procedure Agent extracts stored procedures, functions, triggers, and views
+
+4. **Relationship Mapping Phase**:
+   - Once table extraction is complete, the Relationship Agent maps foreign keys
+   - It identifies relationships between tables and updates the schema
+
+5. **Dependency Analysis Phase**:
+   - The Dependency Agent analyzes dependencies between all database objects
+   - It builds a dependency graph that shows how objects relate to each other
+
+6. **Storage Phase**:
+   - The Graph Agent converts the schema to a graph model
+   - It stores the schema in the Neo4j graph database for persistence and querying
+
+7. **Analysis Phase (Optional)**:
+   - The LLM Agent can be invoked to perform intelligent analysis on the schema
+   - It formulates prompts for the OpenAI API based on the analysis type
+   - Analysis results are processed and returned to the caller
+
+8. **Result Aggregation**:
+   - The Orchestrator Agent aggregates results from all specialized agents
+   - It constructs a complete schema representation with all extracted information
+   - The final schema is returned to the API for delivery to the frontend
+
 ## Backend Components
 
 ### Agent System
