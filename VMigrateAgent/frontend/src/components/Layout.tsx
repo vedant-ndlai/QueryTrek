@@ -22,6 +22,7 @@ import StorageIcon from '@mui/icons-material/Storage';
 import SchemaIcon from '@mui/icons-material/Schema';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import SettingsIcon from '@mui/icons-material/Settings';
+import CodeIcon from '@mui/icons-material/Code';
 
 const drawerWidth = 240;
 
@@ -43,6 +44,7 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Database Connection', icon: <StorageIcon />, path: '/connect' },
     { text: 'Schema Viewer', icon: <SchemaIcon />, path: '/schema' },
     { text: 'Dependency Analysis', icon: <AnalyticsIcon />, path: '/analysis' },
+    { text: 'Code Converter', icon: <CodeIcon />, path: '/code-converter' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   ];
 

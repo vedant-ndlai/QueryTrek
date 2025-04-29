@@ -15,6 +15,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from ..models.schema import DatabaseSchema, DatabaseType
+from ..agents.code_converter_agent import CodeConverterAgent
 from ..agents.orchestrator_agent import OrchestratorAgent
 from ..agents.graph_agent import GraphAgent
 from ..agents.llm_agent import LLMAgent
@@ -88,6 +89,16 @@ class AnalysisRequest(BaseModel):
     database_name: str
     analysis_type: str = "dependency"
     target_object: Optional[Dict[str, str]] = None
+
+class QueryConversionRequest(BaseModel):
+    source_query: str = Field(..., description="Source database query to be converted")
+    source_language: str = Field(..., description="Source database query language (e.g., MySQL, PostgreSQL, MongoDB)")
+    target_language: str = Field(..., description="Target database query language (e.g., MySQL, PostgreSQL, MongoDB)")
+
+class QueryConversionResponse(BaseModel):
+    success: bool
+    converted_query: Optional[str] = None
+    error: Optional[str] = None
 
 class SchemaResponse(BaseModel):
     database_name: str
@@ -309,6 +320,81 @@ async def get_dependencies(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+
+@app.post("/convert-code", response_model=CodeConversionResponse)
+async def convert_code(
+    request: CodeConversionRequest,
+    current_user: User = Depends(get_current_active_user)
+) -> Dict[str, Any]:
+    """
+    Convert code from one programming language to another.
+    
+    Args:
+        request: CodeConversionRequest containing source code and language details
+        current_user: Authenticated user making the request
+        
+    Returns:
+        Dict containing success status, converted code or error message
+    """
+    try:
+        # Initialize code converter agent
+        converter = CodeConverterAgent()
+        
+        # Convert the code
+        converted_code = await converter.convert_code(
+            source_code=request.source_code,
+            source_language=request.source_language.lower(),
+            target_language=request.target_language.lower()
+        )
+        return {
+            "success": True,
+            "converted_code": converted_code
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@app.post("/convert-query", response_model=QueryConversionResponse)
+async def convert_query(
+    request: QueryConversionRequest,
+    current_user: User = Depends(get_current_active_user)
+) -> Dict[str, Any]:
+    """
+    Convert database query from one query language to another.
+    
+    Args:
+        request: QueryConversionRequest containing source query and language details
+        current_user: Authenticated user making the request
+        
+    Returns:
+        Dict containing success status, converted query or error message
+    """
+    try:
+        # Initialize code converter agent
+        converter = CodeConverterAgent()
+        
+        # Convert the query
+        converted_query = await converter.convert_code(
+            source_code=request.source_query,
+            source_language=request.source_language.lower(),
+            target_language=request.target_language.lower()
+        )
+        
+        return {
+            "success": True,
+            "converted_query": converted_query,
+            "error": None
+        }
+        
+    except Exception as e:
+        logging.error(f"Query conversion error: {str(e)}")
+        return {
+            "success": False,
+            "converted_query": None,
+            "error": str(e)
+        }
 
 @app.get("/health")
 async def health_check():

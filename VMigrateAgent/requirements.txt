@@ -18,3 +18,5 @@ python-multipart>=0.0.6
 boto3>=1.28.0
 d3graph>=2.3.0
 networkx>=3.1
+langgraph>=0.0.19
+matplotlib>=3.7.0

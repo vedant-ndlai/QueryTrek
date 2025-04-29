@@ -85,29 +85,21 @@ const ConnectionForm = () => {
       
       const connString = buildConnectionString();
       
-      // In a real app, this would be an API call
-      // const response = await apiService.testConnection({ connectionString: connString });
+      // Call the actual API endpoint
+      const response = await apiService.testConnection({ 
+        connection_string: connString,
+        database_type: dbType
+      });
       
-      // Mock response for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setTestResult({
+        success: true,
+        message: `Connection successful! ${response.data.message || ''}`
+      });
       
-      // Simulate successful connection for Sybase
-      if (dbType === 'sybase') {
-        setTestResult({
-          success: true,
-          message: 'Connection successful! Database version: Sybase ASE 16.0',
-        });
-      } else {
-        // Simulate failed connection for other types (for demo purposes)
-        setTestResult({
-          success: false,
-          message: 'Connection failed: Unable to connect to the database server.',
-        });
-      }
-    } catch (error) {
+    } catch (error: any) {
       setTestResult({
         success: false,
-        message: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Connection failed: ${error.response?.data?.detail || error.message || 'Unable to connect to the database server.'}`
       });
     } finally {
       setLoading(false);
@@ -119,20 +111,19 @@ const ConnectionForm = () => {
       setLoading(true);
       const connString = buildConnectionString();
       
-      // In a real app, this would be an API call
-      // await apiService.extractSchema({ connectionString: connString });
-      
-      // Mock for now
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await apiService.extractSchema({ 
+        connection_string: connString,
+        schema_filter: [] // Add schema filters if needed
+      });
       
       setTestResult({
         success: true,
-        message: 'Schema extraction started successfully! You can view the progress in the Schema Viewer.',
+        message: `Schema extraction started successfully! ${response.data.message || 'You can view the progress in the Schema Viewer.'}`,
       });
-    } catch (error) {
+    } catch (error: any) {
       setTestResult({
         success: false,
-        message: `Schema extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Schema extraction failed: ${error.response?.data?.detail || error.message || 'Unknown error'}`,
       });
     } finally {
       setLoading(false);

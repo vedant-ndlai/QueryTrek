@@ -14,6 +14,7 @@ A scalable, multi-agent system that dynamically extracts database schemas from v
   - [Database Connectors](#database-connectors)
 - [Frontend Components](#frontend-components)
 - [Deployment Architecture](#deployment-architecture)
+- [LangGraph Integration](#langgraph-integration)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -318,6 +319,57 @@ VMigrateAgent is deployed using Docker and Docker Compose with the following ser
 3. **Neo4j Service**: Graph database for storing schema data
 4. **RabbitMQ Service**: Message broker for agent communication
 5. **Sybase Service**: Sybase database for testing and development
+
+## LangGraph Integration
+
+A proof-of-concept integration with LangGraph has been implemented to enhance the agent orchestration system. LangGraph is a framework for building stateful, multi-agent applications with LLMs, providing explicit workflow definitions and improved state management.
+
+### Benefits of LangGraph Integration
+
+1. **Explicit Workflow Definition**: The agent workflow is defined as a directed graph, making it more declarative and easier to understand.
+2. **Structured State Management**: Better tracking of the schema extraction process with typed state schemas.
+3. **Conditional Branching**: Sophisticated error handling and recovery strategies based on agent outputs.
+4. **Parallel Processing Control**: More structured parallel execution patterns for concurrent agent tasks.
+5. **Visualization**: Built-in visualization of the workflow graph for better debugging and documentation.
+6. **Extensibility**: Simpler process for adding new agents or modifying the workflow.
+
+### LangGraph Workflow Diagram
+
+```
+┌─────────────┐         ┌─────────────────┐         ┌─────────────┐         ┌─────────────┐
+│ Connection  │─────────▶│    Parallel     │─────────▶│Relationship │─────────▶│ Dependency  │
+│   Agent     │         │   Extraction    │         │   Agent     │         │   Agent     │
+└─────────────┘         └─────────────────┘         └─────────────┘         └─────────────┘
+       │                        │                           │                      │
+       ▼                        ▼                           ▼                      ▼
+┌─────────────┐         ┌─────────────────┐         ┌─────────────┐         ┌─────────────┐
+│   Error     │◀────────│     Error       │◀────────│    Error    │◀────────│    Error    │
+│  Handler    │         │    Handler      │         │   Handler   │         │   Handler   │
+└─────────────┘         └─────────────────┘         └─────────────┘         └─────────────┘
+```
+
+### Implementation
+
+The LangGraph implementation includes:
+
+1. **State Schema Definition**: Typed dictionary defining the structure of the agent workflow state.
+2. **Node Implementations**: Each agent is implemented as a node in the graph.
+3. **Conditional Routing**: Logic for determining the next step based on agent outputs.
+4. **Parallel Execution**: Structured approach for running agents concurrently.
+
+To try the LangGraph orchestrator:
+
+```bash
+# Install LangGraph
+pip install langgraph>=0.0.19
+
+# Run the comparison example
+python src/examples/compare_orchestrators.py
+```
+
+The proof-of-concept is available in:
+- `src/agents/langgraph_orchestrator.py`: LangGraph-based orchestrator implementation
+- `src/examples/compare_orchestrators.py`: Script to compare original and LangGraph orchestrators
 
 ## Installation
 

@@ -9,6 +9,7 @@ import ConnectionForm from './pages/ConnectionForm';
 import SchemaViewer from './pages/SchemaViewer';
 import DependencyAnalysis from './pages/DependencyAnalysis';
 import Settings from './pages/Settings';
+import CodeConverter from './pages/CodeConverter';
 
 // Components
 import Layout from './components/Layout';
@@ -49,6 +50,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/connect" element={<ConnectionForm />} />
             <Route path="/schema" element={<SchemaViewer />} />
+            <Route path="/code-converter" element={<CodeConverter />} />
             <Route path="/analysis" element={<DependencyAnalysis />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
